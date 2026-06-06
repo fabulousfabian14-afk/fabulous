@@ -138,7 +138,7 @@ app.get('/student', requireRole('student'), async (req, res) => {
 app.get('/student/available', requireRole('student'), async (req, res) => {
   const db = await openDatabase();
   const reports = await db.all(
-    'SELECT r.*, u.full_name AS reporter, u.contact_phone as reporter_phone FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.status IN (?, ?) AND (r.archived_at IS NULL) ORDER BY r.created_at DESC',
+    'SELECT r.*, u.full_name AS reporter, u.phone_number as reporter_phone FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.status IN (?, ?) AND (r.archived_at IS NULL) ORDER BY r.created_at DESC',
     'found',
     'in security',
     'claim requested'
