@@ -1,0 +1,11 @@
+services:
+  - type: web_service
+    name: kahianga-tracker
+    env: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: "3000"
