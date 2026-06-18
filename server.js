@@ -356,7 +356,23 @@ app.get('/admin', requireRole('admin'), async (req, res) => {
   const db = await openDatabase();
   const users = await db.all('SELECT id, username, full_name, email, role, phone_number FROM users ORDER BY role, username');
   const reports = await db.all('SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by ORDER BY created_at DESC');
-  res.render('dashboard_admin', { users, reports });
+  const lostReports = reports.filter((r) => r.type === 'lost');
+  const foundReports = reports.filter((r) => r.type === 'found');
+  res.render('dashboard_admin', { users, reports, lostReports, foundReports });
+});
+
+app.post('/admin/report/:id/delete', requireRole('admin'), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const db = await openDatabase();
+    await db.run('DELETE FROM claims WHERE report_id = ?', id);
+    await db.run('DELETE FROM reports WHERE id = ?', id);
+    req.flash('success', 'Report deleted successfully.');
+  } catch (err) {
+    console.error('Error deleting report:', err);
+    req.flash('error', 'Unable to delete report.');
+  }
+  res.redirect('/admin');
 });
 
 app.get('/admin/add-user', requireRole('admin'), (req, res) => res.render('admin_add_user'));

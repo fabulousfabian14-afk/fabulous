@@ -64,12 +64,37 @@
         <h2>All reports</h2>
         ${reports.length ? `
           <table>
-            <thead><tr><th>ID</th><th>Type</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Date</th></tr></thead>
+            <thead><tr><th>ID</th><th>Type</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody>
-              ${reports.map(r => `<tr><td>${r.id}</td><td>${r.type}</td><td>${r.title}</td><td><span class="status-badge status-${r.status.replace(/\\s+/g, '-')}">${r.status}</span></td><td>${r.location}</td><td>${r.reporter || 'Unknown'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join('')}
+              ${reports.map(r => `<tr><td>${r.id}</td><td>${r.type}</td><td>${r.title}</td><td><span class="status-badge status-${r.status.replace(/\s+/g, '-')}">${r.status}</span></td><td>${r.location}</td><td>${r.reporter || 'Unknown'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td><td><form method="post" action="/admin/report/${r.id}/delete" style="display:inline;"><button class="btn btn-danger" onclick="return confirm('Delete report ${r.title}?')" style="font-size:11px;padding:4px 6px;">Delete</button></form></td></tr>`).join('')}
             </tbody>
           </table>
         ` : '<p>No reports recorded.</p>'}
+      </div>
+    </section>
+
+    <section class="section-grid">
+      <div class="table-card">
+        <h2>Lost items</h2>
+        ${lostReports && lostReports.length ? `
+          <table>
+            <thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${lostReports.map(r => `<tr><td>${r.id}</td><td>${r.title}</td><td><span class="status-badge status-${r.status.replace(/\s+/g, '-')}">${r.status}</span></td><td>${r.location}</td><td>${r.reporter || 'Unknown'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td><td><form method="post" action="/admin/report/${r.id}/delete" style="display:inline;"><button class="btn btn-danger" onclick="return confirm('Delete lost report ${r.title}?')" style="font-size:11px;padding:4px 6px;">Delete</button></form></td></tr>`).join('')}
+            </tbody>
+          </table>
+        ` : '<p>No lost reports found.</p>'}
+      </div>
+      <div class="table-card">
+        <h2>Found items</h2>
+        ${foundReports && foundReports.length ? `
+          <table>
+            <thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${foundReports.map(r => `<tr><td>${r.id}</td><td>${r.title}</td><td><span class="status-badge status-${r.status.replace(/\s+/g, '-')}">${r.status}</span></td><td>${r.location}</td><td>${r.reporter || 'Unknown'}</td><td>${new Date(r.created_at).toLocaleDateString()}</td><td><form method="post" action="/admin/report/${r.id}/delete" style="display:inline;"><button class="btn btn-danger" onclick="return confirm('Delete found report ${r.title}?')" style="font-size:11px;padding:4px 6px;">Delete</button></form></td></tr>`).join('')}
+            </tbody>
+          </table>
+        ` : '<p>No found reports found.</p>'}
       </div>
     </section>
   ` 
