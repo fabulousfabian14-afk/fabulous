@@ -171,7 +171,7 @@ app.get('/student/available', requireRole('student'), async (req, res) => {
      LEFT JOIN users u ON u.id = r.created_by
      LEFT JOIN claims c ON c.report_id = r.id
      WHERE r.type = ? AND r.status IN (?, ?) AND r.archived_at IS NULL
-     GROUP BY r.id
+     GROUP BY r.id, u.full_name, u.phone_number
      ORDER BY r.created_at DESC`,
     req.session.user.id,
     'found',
@@ -438,6 +438,42 @@ app.post('/admin/user/:id/reset-password', requireRole('admin'), async (req, res
   }
   res.redirect('/admin');
 });
+
+// Test-only helpers (enabled when NODE_ENV=test). These endpoints help automated
+// integration tests create fixture data without requiring direct DB access.
+if (process.env.NODE_ENV === 'test') {
+  app.post('/_test/insert-report', requireLogin, async (req, res) => {
+    try {
+      const { title, description, location, type = 'found', status = 'in security' } = req.body;
+      const db = await openDatabase();
+      const result = await db.run(
+        'INSERT INTO reports (title, description, location, type, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) RETURNING id',
+        title || 'Test Item',
+        description || 'Test description',
+        location || 'Test location',
+        type,
+        status,
+        req.session.user.id
+      );
+      const id = result && result.rows && result.rows[0] ? result.rows[0].id : null;
+      res.json({ id });
+    } catch (err) {
+      console.error('Test insert-report error:', err);
+      res.status(500).json({ error: 'Unable to insert report' });
+    }
+  });
+  app.get('/_test/claims-by-report/:reportId', requireLogin, async (req, res) => {
+    try {
+      const { reportId } = req.params;
+      const db = await openDatabase();
+      const claims = await db.all('SELECT * FROM claims WHERE report_id = ? ORDER BY created_at DESC', reportId);
+      res.json(claims);
+    } catch (err) {
+      console.error('Test claims-by-report error:', err);
+      res.status(500).json({ error: 'Unable to fetch claims' });
+    }
+  });
+}
 
 app.use((req, res) => {
   res.status(404).send('Page not found');
