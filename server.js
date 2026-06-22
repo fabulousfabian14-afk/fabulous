@@ -28,21 +28,24 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const useCloudinary = Boolean(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+
 // Helper function to generate image path - works for both local and cloud scenarios
 function getImagePath(file) {
   if (!file) return null;
-  if (isProduction && process.env.CLOUDINARY_CLOUD_NAME) {
-    // Return Cloudinary secure URL
-    return file.secure_url || file.path;
+  if (useCloudinary) {
+    return file.secure_url || file.url || file.path || null;
   }
-  // On development: use local uploads
   return `uploads/${file.filename}`;
 }
 
 // Configure multer storage based on environment
 let storage;
-if (isProduction && process.env.CLOUDINARY_CLOUD_NAME) {
-  // Use Cloudinary for production
+if (useCloudinary) {
   storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
@@ -52,8 +55,8 @@ if (isProduction && process.env.CLOUDINARY_CLOUD_NAME) {
     },
   });
 } else if (isProduction) {
-  // Production without Cloudinary: use memory storage (temporary)
-  storage = multer.memoryStorage();
+  console.error('Cloudinary is not configured: set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in production.');
+  process.exit(1);
 } else {
   // Local development: use disk storage
   storage = multer.diskStorage({
