@@ -618,12 +618,48 @@ button:hover,
   }
 
   .thumb {
-    width: 80px;
-    height: 56px;
+    width: 60px;
+    height: 42px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #e5e7eb;
     display: block;
+  }
+
+  .compact-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    align-items: start;
+  }
+
+  .compact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  .compact-item .thumb {
+    width: 100%;
+    height: 84px;
+    border-radius: 8px;
+  }
+
+  .compact-item-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+
+  .compact-item-meta {
+    font-size: 0.72rem;
+    color: #475569;
+    line-height: 1.3;
   }
 
   .table-wrapper {
