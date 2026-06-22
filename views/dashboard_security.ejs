@@ -1,213 +1,131 @@
-<%- include('layout', { 
-  user, 
-  error, 
-  success,
-  body: `
-    <section class="page-header">
-      <div>
-        <h1>Security Office Dashboard</h1>
-        <p>Manage the gate office lost and found inventory, review pending claim requests, and register found items from visitors.</p>
-      </div>
-      <a class="button" href="/security/report-found">Report Found Item</a>
-    </section>
+﻿<%
+  const formatDateTime = (date) => new Date(date).toLocaleString();
+  const formatDate = (date) => new Date(date).toLocaleDateString();
+  const reportUrl = (path) => path && path.match(/^https?:\/\//) ? path : '/' + path;
+  const escapeAttr = (value) => String(value || '').replace(/"/g, '&quot;');
+  let body = '';
 
-    <section class="dashboard-summary">
-      <div class="status-card status-card-lost">
-        <h3>Lost reports</h3>
-        <p>${lostReports.length}</p>
-      </div>
-      <div class="status-card status-card-found">
-        <h3>Found items</h3>
-        <p>${foundReports.length}</p>
-      </div>
-      <div class="status-card status-card-pending">
-        <h3>Pending claim requests</h3>
-        <p>${pendingClaims.length}</p>
-      </div>
-    </section>
+  body += '<section class="page-header">';
+  body += '<div><h1>Security Office Dashboard</h1>';
+  body += '<p>Manage the gate office lost and found inventory, review pending claim requests, and register found items from visitors.</p></div>';
+  body += '<a class="button" href="/security/report-found">Report Found Item</a>';
+  body += '</section>';
 
-    <section class="section-grid">
-      <div class="table-card">
-        <h2>Pending claim requests</h2>
-        ${pendingClaims.length ? `
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr><th>Claim ID</th><th>Image</th><th>Item</th><th>Claimant</th><th>Phone</th><th>Reason</th><th>Proof</th><th>Status</th><th>Submitted</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                ${pendingClaims.map(c => `
-                  <tr>
-                    <td>${c.id}</td>
-                    <td>
-                      ${c.report_image_path ? `<img src="${c.report_image_path.match(/^https?:\/\//) ? c.report_image_path : '/' + c.report_image_path}" alt="${c.report_title}" class="thumb" />` : '<div class="no-image" style="height:56px; width:80px;">📦</div>'}
-                    </td>
-                    <td>${c.report_title}</td>
-                    <td>${c.claimant}</td>
-                    <td>${c.claimant_phone || '-'}</td>
-                    <td><div class="table-note-small">${c.claim_reason ? c.claim_reason : '<em>Not provided</em>'}</div></td>
-                    <td><div class="table-note-small">${c.proof_of_ownership ? c.proof_of_ownership : '<em>Not provided</em>'}</div></td>
-                    <td><span class="status-badge status-pending">${c.status}</span></td>
-                    <td>${new Date(c.created_at).toLocaleString()}</td>
-                    <td class="action-buttons">
-                      <button type="button" class="btn btn-secondary btn-small" onclick="openClaimDetails(this)"
-                        data-claimant="<%= c.claimant || 'Unknown' %>"
-                        data-item="<%= c.report_title || 'Item' %>"
-                        data-reason="<%= c.claim_reason || 'Not provided' %>"
-                        data-proof="<%= c.proof_of_ownership || 'Not provided' %>"
-                        data-submitted="<%= new Date(c.created_at).toLocaleString() %>"
-                        >View details</button>
-                      <form action="/security/claim/${c.id}/approve" method="post">
-                        <button type="submit" class="btn btn-success">Approve</button>
-                      </form>
-                      <form action="/security/claim/${c.id}/reject" method="post">
-                        <button type="submit" class="btn btn-secondary">Reject</button>
-                      </form>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        ` : '<p>No pending claim requests at the moment.</p>'}
-      </div>
-      <div id="claim-details-modal" class="modal-overlay" hidden>
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="claim-details-title">
-          <div class="modal-header">
-            <div>
-              <h3 id="claim-details-title">Claim Detail Preview</h3>
-              <p id="modal-submitted" style="margin:0; color:#64748b; font-size:0.82rem;"></p>
-            </div>
-            <button type="button" class="modal-close" onclick="closeClaimDetails()">✕</button>
-          </div>
-          <div class="modal-body">
-            <div class="details-grid">
-              <div>
-                <div class="details-label">Claimant</div>
-                <div id="modal-claimant" class="details-box"></div>
-              </div>
-              <div>
-                <div class="details-label">Item</div>
-                <div id="modal-item" class="details-box"></div>
-              </div>
-              <div>
-                <div class="details-label">Reason for claim</div>
-                <div id="modal-reason" class="details-box"></div>
-              </div>
-              <div>
-                <div class="details-label">Proof of ownership</div>
-                <div id="modal-proof" class="details-box"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <script>
-        function openClaimDetails(button) {
-          const modal = document.getElementById('claim-details-modal');
-          document.getElementById('modal-item').textContent = button.dataset.item || 'Unknown item';
-          document.getElementById('modal-claimant').textContent = button.dataset.claimant || 'Unknown claimant';
-          document.getElementById('modal-reason').textContent = button.dataset.reason || 'Not provided';
-          document.getElementById('modal-proof').textContent = button.dataset.proof || 'Not provided';
-          document.getElementById('modal-submitted').textContent = `Submitted: ${button.dataset.submitted || ''}`;
-          modal.hidden = false;
-        }
+  body += '<section class="dashboard-summary">';
+  body += '<div class="status-card status-card-lost"><h3>Lost reports</h3><p>' + lostReports.length + '</p></div>';
+  body += '<div class="status-card status-card-found"><h3>Found items</h3><p>' + foundReports.length + '</p></div>';
+  body += '<div class="status-card status-card-pending"><h3>Pending claim requests</h3><p>' + pendingClaims.length + '</p></div>';
+  body += '</section>';
 
-        function closeClaimDetails() {
-          const modal = document.getElementById('claim-details-modal');
-          modal.hidden = true;
-        }
+  body += '<section class="section-grid">';
+  body += '<div class="table-card"><h2>Pending claim requests</h2>';
+  if (pendingClaims.length) {
+    body += '<div class="table-wrapper"><table><thead><tr><th>Claim ID</th><th>Image</th><th>Item</th><th>Claimant</th><th>Phone</th><th>Reason</th><th>Proof</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>';
+    pendingClaims.forEach(c => {
+      body += '<tr>';
+      body += '<td>' + c.id + '</td>';
+      body += '<td>';
+      if (c.report_image_path) {
+        body += '<img src="' + reportUrl(c.report_image_path) + '" alt="' + escapeAttr(c.report_title) + '" class="thumb" />';
+      } else {
+        body += '<div class="no-image" style="height:56px; width:80px;">📦</div>';
+      }
+      body += '</td>';
+      body += '<td>' + (c.report_title || '') + '</td>';
+      body += '<td>' + (c.claimant || '') + '</td>';
+      body += '<td>' + (c.claimant_phone || '-') + '</td>';
+      body += '<td><div class="table-note-small">' + (c.claim_reason || '<em>Not provided</em>') + '</div></td>';
+      body += '<td><div class="table-note-small">' + (c.proof_of_ownership || '<em>Not provided</em>') + '</div></td>';
+      body += '<td><span class="status-badge status-pending">' + c.status + '</span></td>';
+      body += '<td>' + formatDateTime(c.created_at) + '</td>';
+      body += '<td class="action-buttons">';
+      body += '<button type="button" class="btn btn-secondary btn-small" onclick="openClaimDetails(this)"' +
+              ' data-claimant="' + escapeAttr(c.claimant || 'Unknown') + '"' +
+              ' data-item="' + escapeAttr(c.report_title || 'Item') + '"' +
+              ' data-reason="' + escapeAttr(c.claim_reason || 'Not provided') + '"' +
+              ' data-proof="' + escapeAttr(c.proof_of_ownership || 'Not provided') + '"' +
+              ' data-submitted="' + escapeAttr(formatDateTime(c.created_at)) + '">View details</button>';
+      body += '<form action="/security/claim/' + c.id + '/approve" method="post"><button type="submit" class="btn btn-success">Approve</button></form>';
+      body += '<form action="/security/claim/' + c.id + '/reject" method="post"><button type="submit" class="btn btn-secondary">Reject</button></form>';
+      body += '</td>';
+      body += '</tr>';
+    });
+    body += '</tbody></table></div>';
+  } else {
+    body += '<p>No pending claim requests at the moment.</p>';
+  }
+  body += '</div>';
 
-        document.getElementById('claim-details-modal').addEventListener('click', function(event) {
-          if (event.target === this) {
-            closeClaimDetails();
-          }
-        });
+  body += '<div id="claim-details-modal" class="modal-overlay" hidden>';
+  body += '<div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="claim-details-title">';
+  body += '<div class="modal-header"><div><h3 id="claim-details-title">Claim Detail Preview</h3>';
+  body += '<p id="modal-submitted" style="margin:0; color:#64748b; font-size:0.82rem;"></p></div>';
+  body += '<button type="button" class="modal-close" onclick="closeClaimDetails()">✕</button></div>';
+  body += '<div class="modal-body"><div class="details-grid">';
+  body += '<div><div class="details-label">Claimant</div><div id="modal-claimant" class="details-box"></div></div>';
+  body += '<div><div class="details-label">Item</div><div id="modal-item" class="details-box"></div></div>';
+  body += '<div><div class="details-label">Reason for claim</div><div id="modal-reason" class="details-box"></div></div>';
+  body += '<div><div class="details-label">Proof of ownership</div><div id="modal-proof" class="details-box"></div></div>';
+  body += '</div></div></div></div>';
 
-        document.addEventListener('keydown', function(event) {
-          if (event.key === 'Escape') {
-            const modal = document.getElementById('claim-details-modal');
-            if (modal && !modal.hidden) {
-              closeClaimDetails();
-            }
-          }
-        });
-      </script>
-      <div class="table-card">
-        <h2>Found items at security</h2>
-        ${foundReports.length ? `
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                ${foundReports.map(r => `
-                  <tr>
-                    <td>${r.id}</td>
-                    <td>
-                      ${r.image_path ? `<img src="${r.image_path.match(/^https?:\/\//) ? r.image_path : '/' + r.image_path}" alt="${r.title}" class="thumb" />` : '<div class="no-image" style="height:56px; width:80px;">📦</div>'}
-                    </td>
-                    <td>
-                      <strong>${r.title}</strong>
-                      <div class="table-note table-note-small">${r.description || ''}</div>
-                    </td>
-                    <td><span class="status-badge status-${r.status.replace(/\\s+/g, '-')}">${r.status}</span></td>
-                    <td>${r.location}</td>
-                    <td>${r.reporter || 'Security'}</td>
-                    <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                        <form action="/security/report/${r.id}/assign" method="post" class="inline-form" style="width: 100%;">
-                          <select name="status" style="flex: 1;">
-                            <option value="in security">In security</option>
-                            <option value="returned">Returned</option>
-                          </select>
-                          <button type="submit" class="btn btn-primary" style="flex-shrink: 0;">Update</button>
-                        </form>
-                        <form action="/security/report/${r.id}/resolve" method="post" style="width: 100%;">
-                          <button type="submit" class="btn btn-secondary" style="width: 100%;">Close</button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        ` : '<p>No found items recorded yet.</p>'}
-      </div>
-    </section>
+  body += '<script>function openClaimDetails(button){const modal=document.getElementById("claim-details-modal");document.getElementById("modal-item").textContent=button.dataset.item||"Unknown item";document.getElementById("modal-claimant").textContent=button.dataset.claimant||"Unknown claimant";document.getElementById("modal-reason").textContent=button.dataset.reason||"Not provided";document.getElementById("modal-proof").textContent=button.dataset.proof||"Not provided";document.getElementById("modal-submitted").textContent="Submitted: "+(button.dataset.submitted||"");modal.hidden=false;}function closeClaimDetails(){document.getElementById("claim-details-modal").hidden=true;}document.getElementById("claim-details-modal").addEventListener("click",function(event){if(event.target===this){closeClaimDetails();}});document.addEventListener("keydown",function(event){if(event.key==="Escape"){const modal=document.getElementById("claim-details-modal");if(modal&&!modal.hidden){closeClaimDetails();}}});</script>';
 
-    <section class="table-card">
-      <h2>Lost reports at the gate</h2>
-      ${lostReports.length ? `
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th></tr>
-            </thead>
-            <tbody>
-              ${lostReports.map(r => `
-                <tr>
-                  <td>${r.id}</td>
-                  <td>
-                    ${r.image_path ? `<img src="${r.image_path.match(/^https?:\/\//) ? r.image_path : '/' + r.image_path}" alt="${r.title}" class="thumb" />` : '<div class="no-image" style="height:56px; width:80px;">📦</div>'}
-                  </td>
-                  <td>
-                    <strong>${r.title}</strong>
-                    <div class="table-note">${r.description}</div>
-                  </td>
-                  <td><span class="status-badge status-${r.status.replace(/\\s+/g, '-')}">${r.status}</span></td>
-                  <td>${r.location}</td>
-                  <td>${r.reporter || 'Unknown'}</td>
-                  <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      ` : '<p>No lost item reports logged at security.</p>'}
-    </section>
-  ` 
-}) %>
+  body += '<div class="table-card"><h2>Found items at security</h2>';
+  if (foundReports.length) {
+    body += '<div class="table-wrapper"><table><thead><tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th><th>Actions</th></tr></thead><tbody>';
+    foundReports.forEach(r => {
+      body += '<tr>';
+      body += '<td>' + r.id + '</td>';
+      body += '<td>';
+      if (r.image_path) {
+        body += '<img src="' + reportUrl(r.image_path) + '" alt="' + escapeAttr(r.title) + '" class="thumb" />';
+      } else {
+        body += '<div class="no-image" style="height:56px; width:80px;">📦</div>';
+      }
+      body += '</td>';
+      body += '<td><strong>' + r.title + '</strong><div class="table-note table-note-small">' + (r.description || '') + '</div></td>';
+      body += '<td><span class="status-badge status-' + r.status.replace(/\s+/g, '-') + '">' + r.status + '</span></td>';
+      body += '<td>' + (r.location || '') + '</td>';
+      body += '<td>' + (r.reporter || 'Security') + '</td>';
+      body += '<td>' + formatDate(r.created_at) + '</td>';
+      body += '<td><div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">';
+      body += '<form action="/security/report/' + r.id + '/assign" method="post" class="inline-form" style="width: 100%;">';
+      body += '<select name="status" style="flex: 1;"><option value="in security">In security</option><option value="returned">Returned</option></select>';
+      body += '<button type="submit" class="btn btn-primary" style="flex-shrink: 0;">Update</button></form>';
+      body += '<form action="/security/report/' + r.id + '/resolve" method="post" style="width: 100%;">';
+      body += '<button type="submit" class="btn btn-secondary" style="width: 100%;">Close</button></form>';
+      body += '</div></td></tr>';
+    });
+    body += '</tbody></table></div>';
+  } else {
+    body += '<p>No found items recorded yet.</p>';
+  }
+  body += '</div>';
+
+  body += '<section class="table-card"><h2>Lost reports at the gate</h2>';
+  if (lostReports.length) {
+    body += '<div class="table-wrapper"><table><thead><tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th></tr></thead><tbody>';
+    lostReports.forEach(r => {
+      body += '<tr>';
+      body += '<td>' + r.id + '</td>';
+      body += '<td>';
+      if (r.image_path) {
+        body += '<img src="' + reportUrl(r.image_path) + '" alt="' + escapeAttr(r.title) + '" class="thumb" />';
+      } else {
+        body += '<div class="no-image" style="height:56px; width:80px;">📦</div>';
+      }
+      body += '</td>';
+      body += '<td><strong>' + r.title + '</strong><div class="table-note">' + (r.description || '') + '</div></td>';
+      body += '<td><span class="status-badge status-' + r.status.replace(/\s+/g, '-') + '">' + r.status + '</span></td>';
+      body += '<td>' + (r.location || '') + '</td>';
+      body += '<td>' + (r.reporter || 'Unknown') + '</td>';
+      body += '<td>' + formatDate(r.created_at) + '</td>';
+      body += '</tr>';
+    });
+    body += '</tbody></table></div>';
+  } else {
+    body += '<p>No lost item reports logged at security.</p>';
+  }
+  body += '</section>';
+%>
+<%- include('layout', { user, error, success, body }) %>
