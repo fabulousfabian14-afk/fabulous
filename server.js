@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { openDatabase, initDatabase } = require('./db');
 
 const app = express();
@@ -19,22 +21,38 @@ if (!isProduction && !fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // Helper function to generate image path - works for both local and cloud scenarios
 function getImagePath(file) {
   if (!file) return null;
-  if (isProduction) {
-    // On production (Render): store a placeholder since ephemeral FS won't persist
-    // In future: integrate Cloudinary or other persistent storage here
-    return `[image-${Date.now()}]`;
+  if (isProduction && process.env.CLOUDINARY_CLOUD_NAME) {
+    // Return Cloudinary secure URL
+    return file.secure_url || file.path;
   }
   // On development: use local uploads
   return `uploads/${file.filename}`;
 }
 
-// Configure multer to save files locally (development) or reject on production (ephemeral FS)
+// Configure multer storage based on environment
 let storage;
-if (isProduction) {
-  // On Render production: use memory storage (temporary)
+if (isProduction && process.env.CLOUDINARY_CLOUD_NAME) {
+  // Use Cloudinary for production
+  storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'kabianga-tracker',
+      resource_type: 'auto',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    },
+  });
+} else if (isProduction) {
+  // Production without Cloudinary: use memory storage (temporary)
   storage = multer.memoryStorage();
 } else {
   // Local development: use disk storage
