@@ -45,8 +45,8 @@
                     <td>${c.report_title}</td>
                     <td>${c.claimant}</td>
                     <td>${c.claimant_phone || '-'}</td>
-                    <td><div class="table-note table-note-small">${c.claim_reason || '-'}</div></td>
-                    <td><div class="table-note table-note-small">${c.proof_of_ownership || '-'}</div></td>
+                    <td><div class="table-note table-note-small">${c.claim_reason ? c.claim_reason : '<em>Not provided</em>'}</div></td>
+                    <td><div class="table-note table-note-small">${c.proof_of_ownership ? c.proof_of_ownership : '<em>Not provided</em>'}</div></td>
                     <td><span class="status-badge status-pending">${c.status}</span></td>
                     <td>${new Date(c.created_at).toLocaleString()}</td>
                     <td class="action-buttons">

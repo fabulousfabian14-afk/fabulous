@@ -9,19 +9,43 @@ const { openDatabase, initDatabase } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Determine if using Render production or local development
+const isProduction = process.env.NODE_ENV === 'production';
 const uploadDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) {
+
+// Only create local uploads directory for development
+if (!isProduction && !fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure multer to save files with original extensions
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
+// Helper function to generate image path - works for both local and cloud scenarios
+function getImagePath(file) {
+  if (!file) return null;
+  if (isProduction) {
+    // On production (Render): store a placeholder since ephemeral FS won't persist
+    // In future: integrate Cloudinary or other persistent storage here
+    return `[image-${Date.now()}]`;
   }
-});
+  // On development: use local uploads
+  return `uploads/${file.filename}`;
+}
+
+// Configure multer to save files locally (development) or reject on production (ephemeral FS)
+let storage;
+if (isProduction) {
+  // On Render production: use memory storage (temporary)
+  storage = multer.memoryStorage();
+} else {
+  // Local development: use disk storage
+  storage = multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+      const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${path.extname(file.originalname)}`;
+      cb(null, uniqueName);
+    }
+  });
+}
 
 const upload = multer({ 
   storage: storage,
@@ -207,7 +231,7 @@ app.get('/student/report-found', requireRole('student'), (req, res) => res.rende
 
 app.post('/student/report-lost', requireRole('student'), upload.single('image'), async (req, res) => {
   const { title, description, location, phone } = req.body;
-  const imagePath = req.file ? `uploads/${req.file.filename}` : null;
+  const imagePath = getImagePath(req.file);
   const db = await openDatabase();
   await db.run(
     'INSERT INTO reports (title, description, location, type, status, created_by, assigned_to, contact_phone, image_path, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
@@ -227,7 +251,7 @@ app.post('/student/report-lost', requireRole('student'), upload.single('image'),
 
 app.post('/student/report-found', requireRole('student'), upload.single('image'), async (req, res) => {
   const { title, description, location, phone } = req.body;
-  const imagePath = req.file ? `uploads/${req.file.filename}` : null;
+  const imagePath = getImagePath(req.file);
   const db = await openDatabase();
   await db.run(
     'INSERT INTO reports (title, description, location, type, status, created_by, assigned_to, contact_phone, image_path, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
@@ -287,7 +311,7 @@ app.get('/security/report-found', requireRole('security'), (req, res) => res.ren
 
 app.post('/security/report-found', requireRole('security'), upload.single('image'), async (req, res) => {
   const { title, description, location, phone, owner_name } = req.body;
-  const imagePath = req.file ? `uploads/${req.file.filename}` : null;
+  const imagePath = getImagePath(req.file);
   const db = await openDatabase();
   await db.run(
     'INSERT INTO reports (title, description, location, type, status, created_by, assigned_to, contact_phone, image_path, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
