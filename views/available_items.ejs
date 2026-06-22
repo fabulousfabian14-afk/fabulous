@@ -1,50 +1,91 @@
-<%- include('layout', { body: `
-<section class="page-header">
-  <div>
-    <h1>Available Found Items</h1>
-    <p>These found items are currently held at the security gate. Submit a claim if you believe an item belongs to you.</p>
-  </div>
-</section>
-<section class="notice-box notice-warning">
-  <strong>⏰ Important:</strong> Items not claimed within 90 days may be archived or disposed of according to university policy.
-</section>
-<% if (reports.length) { %>
-  <div class="items-grid">
-    <% reports.forEach(report => { %>
-      <div class="item-card">
-        <div class="item-image">
-          <% if (report.image_path) { %>
-            <img src="/<%= report.image_path %>" alt="<%= report.title %>">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Available Found Items - University of Kabianga Tracker</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container">
+        <div class="brand">🔍 Kabianga Lost & Found Tracker</div>
+        <nav>
+          <% if (user) { %>
+            <a href="/dashboard">Dashboard</a>
+            <span>Signed in as <strong><%= user.full_name %></strong> (<%= user.role %>)</span>
+            <a href="/logout">Logout</a>
           <% } else { %>
-            <div class="no-image">📦 No Image</div>
+            <a href="/login">Login</a>
+            <a href="/register" class="btn-register">Register</a>
           <% } %>
-        </div>
-        <div class="item-info">
-          <h3><%= report.title %></h3>
-          <p class="description"><%= report.description %></p>
-          <div class="item-details">
-            <p><strong>Location Found:</strong> <%= report.location %></p>
-            <p><strong>Reported:</strong> <%= new Date(report.created_at).toLocaleDateString() %></p>
-            <p><strong>Status:</strong> <span class="status-badge status-<%= report.status.replace(/\s+/g, '-') %>"><%= report.status %></span></p>
-            <p><strong>Claim requests:</strong> <%= report.claim_requests || 0 %></p>
-            <p><strong>Security contact:</strong> <%= report.contact_phone || '-' %></p>
-          </div>
-          <div class="item-actions">
-            <% if (report.my_pending_claims > 0) { %>
-              <div class="badge badge-yellow">Your claim is pending review</div>
-            <% } else if ([ 'in security', 'claim requested' ].includes(report.status)) { %>
-              <form action="/student/claim/<%= report.id %>" method="post" class="inline-form">
-                <button type="submit" class="btn btn-success">Request to Claim</button>
-              </form>
-            <% } else { %>
-              <p class="text-muted">Not available for claim.</p>
-            <% } %>
-          </div>
-        </div>
+        </nav>
       </div>
-    <% }) %>
-  </div>
-<% } else { %>
-  <p class="text-center">No claimable items are currently available. Check back later!</p>
-<% } %>
-` }) %>
+    </header>
+
+    <main class="container">
+      <section class="page-header">
+        <div>
+          <h1>Available Found Items</h1>
+          <p>These found items are currently held at the security gate. Submit a claim if you believe an item belongs to you.</p>
+        </div>
+      </section>
+      <section class="notice-box notice-warning">
+        <strong>⏰ Important:</strong> Items not claimed within 90 days may be archived or disposed of according to university policy.
+      </section>
+
+      <% if (reports.length) { %>
+        <div class="items-grid">
+          <% reports.forEach(report => { %>
+            <div class="item-card">
+              <div class="item-image">
+                <% if (report.image_path) { %>
+                  <img src="/<%= report.image_path %>" alt="<%= report.title %>">
+                <% } else { %>
+                  <div class="no-image">📦 No Image</div>
+                <% } %>
+              </div>
+              <div class="item-info">
+                <h3><%= report.title %></h3>
+                <p class="description"><%= report.description %></p>
+                <div class="item-details">
+                  <p><strong>Location Found:</strong> <%= report.location %></p>
+                  <p><strong>Reported:</strong> <%= new Date(report.created_at).toLocaleDateString() %></p>
+                  <p><strong>Status:</strong> <span class="status-badge status-<%= report.status.replace(/\s+/g, '-') %>"><%= report.status %></span></p>
+                  <p><strong>Claim requests:</strong> <%= report.claim_requests || 0 %></p>
+                  <p><strong>Security contact:</strong> <%= report.contact_phone || '-' %></p>
+                </div>
+                <div class="item-actions">
+                  <% if (report.my_pending_claims > 0) { %>
+                    <div class="badge badge-yellow">Your claim is pending review</div>
+                  <% } else if ([ 'in security', 'claim requested' ].includes(report.status)) { %>
+                    <details class="claim-details">
+                      <summary class="btn btn-success">Request to Claim</summary>
+                      <form action="/student/claim/<%= report.id %>" method="post" class="claim-request-form">
+                        <label for="reason-<%= report.id %>">Why do you think this item is yours?</label>
+                        <textarea id="reason-<%= report.id %>" name="claim_reason" rows="3" required></textarea>
+                        <label for="proof-<%= report.id %>">Proof of ownership</label>
+                        <textarea id="proof-<%= report.id %>" name="proof_of_ownership" rows="3" required></textarea>
+                        <button type="submit" class="btn btn-success">Submit Claim</button>
+                      </form>
+                    </details>
+                  <% } else { %>
+                    <p class="text-muted">Not available for claim.</p>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="text-center">No claimable items are currently available. Check back later!</p>
+      <% } %>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2026 University of Kabianga Lost and Found System. Items not claimed within 90 days may be archived or disposed.</p>
+      </div>
+    </footer>
+  </body>
+</html>

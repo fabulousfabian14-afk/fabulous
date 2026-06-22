@@ -112,6 +112,8 @@ async function initDatabase() {
   await ensureColumn(pool, 'reports', 'claim_requested_by', 'INTEGER');
   await ensureColumn(pool, 'reports', 'claim_requested_at', 'TIMESTAMP WITH TIME ZONE');
   await ensureColumn(pool, 'reports', 'archived_at', 'TIMESTAMP WITH TIME ZONE');
+  await ensureColumn(pool, 'claims', 'claim_reason', 'TEXT');
+  await ensureColumn(pool, 'claims', 'proof_of_ownership', 'TEXT');
 
   const adminPasswordHash = await bcrypt.hash('THEFABULOUS', 10);
   const securityPasswordHash = await bcrypt.hash('security@24', 10);

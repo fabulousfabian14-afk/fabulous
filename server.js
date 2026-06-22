@@ -247,10 +247,16 @@ app.post('/student/report-found', requireRole('student'), upload.single('image')
 
 app.post('/student/claim/:id', requireRole('student'), async (req, res) => {
   const { id } = req.params;
+  const { claim_reason, proof_of_ownership } = req.body;
   const db = await openDatabase();
   const report = await db.get('SELECT id, status FROM reports WHERE id = ? AND type = ? AND archived_at IS NULL', id, 'found');
   if (!report || !['in security', 'claim requested'].includes(report.status)) {
     req.flash('error', 'This item cannot be claimed right now.');
+    return res.redirect('/student/available');
+  }
+
+  if (!claim_reason || !proof_of_ownership) {
+    req.flash('error', 'Please explain why the item is yours and provide proof of ownership.');
     return res.redirect('/student/available');
   }
 
@@ -261,10 +267,12 @@ app.post('/student/claim/:id', requireRole('student'), async (req, res) => {
   }
 
   await db.run(
-    'INSERT INTO claims (report_id, user_id, status, created_at) VALUES (?, ?, ?, NOW())',
+    'INSERT INTO claims (report_id, user_id, status, created_at, claim_reason, proof_of_ownership) VALUES (?, ?, ?, NOW(), ?, ?)',
     id,
     req.session.user.id,
-    'pending'
+    'pending',
+    claim_reason,
+    proof_of_ownership
   );
 
   if (report.status === 'in security') {
@@ -345,6 +353,7 @@ app.get('/security', requireRole('security'), async (req, res) => {
   );
   const pendingClaims = await db.all(
     `SELECT c.*, r.title AS report_title, r.description AS report_description, r.location AS report_location,
+      r.image_path AS report_image_path,
       u.full_name AS claimant, u.phone_number AS claimant_phone, r.type AS report_type, r.status AS report_status
      FROM claims c
      JOIN reports r ON r.id = c.report_id
@@ -508,6 +517,53 @@ if (process.env.NODE_ENV === 'test') {
     } catch (err) {
       console.error('Test claims-by-report error:', err);
       res.status(500).json({ error: 'Unable to fetch claims' });
+    }
+  });
+}
+
+// Development-only debug upload endpoint to test static serving without login
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/_debug/upload-form', (req, res) => {
+    res.send(`
+      <html><body>
+      <h2>Debug upload form</h2>
+      <form action="/_debug/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" />
+        <button type="submit">Upload</button>
+      </form>
+      </body></html>
+    `);
+  });
+
+  app.post('/_debug/upload', upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const imagePath = `uploads/${req.file.filename}`;
+    return res.json({ image_path: imagePath, url: `/${imagePath}` });
+  });
+
+  // Render available items without authentication (dev only)
+  app.get('/_debug/available', async (req, res) => {
+    try {
+      const db = await openDatabase();
+      const reports = await db.all(
+        `SELECT r.*, u.full_name AS reporter, u.phone_number AS reporter_phone,
+          COUNT(c.id) AS claim_requests,
+          SUM(CASE WHEN c.user_id = ? AND c.status = 'pending' THEN 1 ELSE 0 END) AS my_pending_claims
+         FROM reports r
+         LEFT JOIN users u ON u.id = r.created_by
+         LEFT JOIN claims c ON c.report_id = r.id
+         WHERE r.type = ? AND r.status IN (?, ?) AND r.archived_at IS NULL
+         GROUP BY r.id, u.full_name, u.phone_number
+         ORDER BY r.created_at DESC`,
+        0,
+        'found',
+        'in security',
+        'claim requested'
+      );
+      res.render('available_items', { reports });
+    } catch (err) {
+      console.error('Debug available error:', err);
+      res.status(500).send('Unable to render debug available');
     }
   });
 }
