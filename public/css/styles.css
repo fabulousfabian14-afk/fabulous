@@ -270,6 +270,97 @@ button:hover,
   background: linear-gradient(90deg, #10b981 0%, #059669 100%);
 }
 
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  border-radius: 6px;
+  min-height: auto;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 24px;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 18px;
+  width: min(680px, 100%);
+  max-height: min(90vh, 800px);
+  overflow: auto;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.2);
+  padding: 28px;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #475569;
+  padding: 4px 6px;
+}
+
+.modal-body {
+  font-size: 0.78rem;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.modal-body p {
+  margin: 0 0 14px 0;
+}
+
+.details-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.details-label {
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+}
+
+.details-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
 .card-grid {
   display: grid;
   gap: 16px;
@@ -513,6 +604,17 @@ button:hover,
     text-overflow: ellipsis;
     word-break: break-word;
     white-space: normal;
+  }
+
+  .table-note-expanded {
+    color: #475569;
+    font-size: 0.72rem;
+    margin-top: 4px;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 280px;
   }
 
   .thumb {

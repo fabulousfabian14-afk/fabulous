@@ -45,11 +45,18 @@
                     <td>${c.report_title}</td>
                     <td>${c.claimant}</td>
                     <td>${c.claimant_phone || '-'}</td>
-                    <td><div class="table-note table-note-small">${c.claim_reason ? c.claim_reason : '<em>Not provided</em>'}</div></td>
-                    <td><div class="table-note table-note-small">${c.proof_of_ownership ? c.proof_of_ownership : '<em>Not provided</em>'}</div></td>
+                    <td><div class="table-note-small">${c.claim_reason ? c.claim_reason : '<em>Not provided</em>'}</div></td>
+                    <td><div class="table-note-small">${c.proof_of_ownership ? c.proof_of_ownership : '<em>Not provided</em>'}</div></td>
                     <td><span class="status-badge status-pending">${c.status}</span></td>
                     <td>${new Date(c.created_at).toLocaleString()}</td>
                     <td class="action-buttons">
+                      <button type="button" class="btn btn-secondary btn-small" onclick="openClaimDetails(this)"
+                        data-claimant="<%= c.claimant || 'Unknown' %>"
+                        data-item="<%= c.report_title || 'Item' %>"
+                        data-reason="<%= c.claim_reason || 'Not provided' %>"
+                        data-proof="<%= c.proof_of_ownership || 'Not provided' %>"
+                        data-submitted="<%= new Date(c.created_at).toLocaleString() %>"
+                        >View details</button>
                       <form action="/security/claim/${c.id}/approve" method="post">
                         <button type="submit" class="btn btn-success">Approve</button>
                       </form>
@@ -64,6 +71,68 @@
           </div>
         ` : '<p>No pending claim requests at the moment.</p>'}
       </div>
+      <div id="claim-details-modal" class="modal-overlay" hidden>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="claim-details-title">
+          <div class="modal-header">
+            <div>
+              <h3 id="claim-details-title">Claim Detail Preview</h3>
+              <p id="modal-submitted" style="margin:0; color:#64748b; font-size:0.82rem;"></p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeClaimDetails()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="details-grid">
+              <div>
+                <div class="details-label">Claimant</div>
+                <div id="modal-claimant" class="details-box"></div>
+              </div>
+              <div>
+                <div class="details-label">Item</div>
+                <div id="modal-item" class="details-box"></div>
+              </div>
+              <div>
+                <div class="details-label">Reason for claim</div>
+                <div id="modal-reason" class="details-box"></div>
+              </div>
+              <div>
+                <div class="details-label">Proof of ownership</div>
+                <div id="modal-proof" class="details-box"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        function openClaimDetails(button) {
+          const modal = document.getElementById('claim-details-modal');
+          document.getElementById('modal-item').textContent = button.dataset.item || 'Unknown item';
+          document.getElementById('modal-claimant').textContent = button.dataset.claimant || 'Unknown claimant';
+          document.getElementById('modal-reason').textContent = button.dataset.reason || 'Not provided';
+          document.getElementById('modal-proof').textContent = button.dataset.proof || 'Not provided';
+          document.getElementById('modal-submitted').textContent = `Submitted: ${button.dataset.submitted || ''}`;
+          modal.hidden = false;
+        }
+
+        function closeClaimDetails() {
+          const modal = document.getElementById('claim-details-modal');
+          modal.hidden = true;
+        }
+
+        document.getElementById('claim-details-modal').addEventListener('click', function(event) {
+          if (event.target === this) {
+            closeClaimDetails();
+          }
+        });
+
+        document.addEventListener('keydown', function(event) {
+          if (event.key === 'Escape') {
+            const modal = document.getElementById('claim-details-modal');
+            if (modal && !modal.hidden) {
+              closeClaimDetails();
+            }
+          }
+        });
+      </script>
       <div class="table-card">
         <h2>Found items at security</h2>
         ${foundReports.length ? `
