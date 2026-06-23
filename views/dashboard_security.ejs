@@ -72,20 +72,31 @@
 
   body += '<div class="table-card"><h2>Found items at security</h2>';
   if (foundReports.length) {
-    body += '<div class="compact-items">';
+    body += '<div class="table-wrapper"><table><thead><tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th><th>Actions</th></tr></thead><tbody>';
     foundReports.forEach(r => {
-      body += '<div class="compact-item">';
+      body += '<tr>';
+      body += '<td>' + r.id + '</td>';
+      body += '<td>';
       if (r.image_path) {
         body += '<img src="' + reportUrl(r.image_path) + '" alt="' + escapeAttr(r.title) + '" class="thumb" />';
       } else {
-        body += '<div class="no-image" style="height:84px; width:100%; display:flex; align-items:center; justify-content:center; border-radius:8px;">📦</div>';
+        body += '<div class="no-image" style="height:56px; width:80px;">📦</div>';
       }
-      body += '<div class="compact-item-title">' + escapeAttr(r.title) + '</div>';
-      body += '<div class="compact-item-meta">' + (r.location || 'No location') + '</div>';
-      body += '<div class="compact-item-meta">' + (r.status || 'Unknown') + '</div>';
-      body += '</div>';
+      body += '</td>';
+      body += '<td><strong>' + r.title + '</strong><div class="table-note table-note-small">' + (r.description || '') + '</div></td>';
+      body += '<td><span class="status-badge status-' + r.status.replace(/\s+/g, '-') + '">' + r.status + '</span></td>';
+      body += '<td>' + (r.location || '') + '</td>';
+      body += '<td>' + (r.reporter || 'Security') + '</td>';
+      body += '<td>' + formatDate(r.created_at) + '</td>';
+      body += '<td><div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">';
+      body += '<form action="/security/report/' + r.id + '/assign" method="post" class="inline-form" style="width: 100%;">';
+      body += '<select name="status" style="flex: 1;"><option value="in security">In security</option><option value="returned">Returned</option></select>';
+      body += '<button type="submit" class="btn btn-primary" style="flex-shrink: 0;">Update</button></form>';
+      body += '<form action="/security/report/' + r.id + '/resolve" method="post" style="width: 100%;">';
+      body += '<button type="submit" class="btn btn-secondary" style="width: 100%;">Close</button></form>';
+      body += '</div></td></tr>';
     });
-    body += '</div>';
+    body += '</tbody></table></div>';
   } else {
     body += '<p>No found items recorded yet.</p>';
   }
