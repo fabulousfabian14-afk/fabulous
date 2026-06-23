@@ -56,20 +56,6 @@
   }
   body += '</div>';
 
-  body += '<div id="claim-details-modal" class="modal-overlay" hidden>';
-  body += '<div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="claim-details-title">';
-  body += '<div class="modal-header"><div><h3 id="claim-details-title">Claim Detail Preview</h3>';
-  body += '<p id="modal-submitted" style="margin:0; color:#64748b; font-size:0.82rem;"></p></div>';
-  body += '<button type="button" class="modal-close" onclick="closeClaimDetails()">✕</button></div>';
-  body += '<div class="modal-body"><div class="details-grid">';
-  body += '<div><div class="details-label">Claimant</div><div id="modal-claimant" class="details-box"></div></div>';
-  body += '<div><div class="details-label">Item</div><div id="modal-item" class="details-box"></div></div>';
-  body += '<div><div class="details-label">Reason for claim</div><div id="modal-reason" class="details-box"></div></div>';
-  body += '<div><div class="details-label">Proof of ownership</div><div id="modal-proof" class="details-box"></div></div>';
-  body += '</div></div></div></div>';
-
-  body += '<script>function openClaimDetails(button){const modal=document.getElementById("claim-details-modal");document.getElementById("modal-item").textContent=button.dataset.item||"Unknown item";document.getElementById("modal-claimant").textContent=button.dataset.claimant||"Unknown claimant";document.getElementById("modal-reason").textContent=button.dataset.reason||"Not provided";document.getElementById("modal-proof").textContent=button.dataset.proof||"Not provided";document.getElementById("modal-submitted").textContent="Submitted: "+(button.dataset.submitted||"");modal.hidden=false;}function closeClaimDetails(){document.getElementById("claim-details-modal").hidden=true;}document.getElementById("claim-details-modal").addEventListener("click",function(event){if(event.target===this){closeClaimDetails();}});document.addEventListener("keydown",function(event){if(event.key==="Escape"){const modal=document.getElementById("claim-details-modal");if(modal&&!modal.hidden){closeClaimDetails();}}});</script>';
-
   body += '<div class="table-card"><h2>Found items at security</h2>';
   if (foundReports.length) {
     body += '<div class="table-wrapper"><table><thead><tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th><th>Actions</th></tr></thead><tbody>';
@@ -101,8 +87,10 @@
     body += '<p>No found items recorded yet.</p>';
   }
   body += '</div>';
+  body += '</section>';
 
-  body += '<section class="table-card"><h2>Lost reports at the gate</h2>';
+  body += '<section class="section-grid">';
+  body += '<div class="table-card"><h2>Lost reports at the gate</h2>';
   if (lostReports.length) {
     body += '<div class="table-wrapper"><table><thead><tr><th>ID</th><th>Image</th><th>Title</th><th>Status</th><th>Location</th><th>Reporter</th><th>Reported</th></tr></thead><tbody>';
     lostReports.forEach(r => {
@@ -126,6 +114,22 @@
   } else {
     body += '<p>No lost item reports logged at security.</p>';
   }
+  body += '</div>';
   body += '</section>';
+
+  body += '<div id="claim-details-modal" class="modal-overlay" hidden>';
+  body += '<div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="claim-details-title">';
+  body += '<div class="modal-header"><div><h3 id="claim-details-title">Claim Detail Preview</h3>';
+  body += '<p id="modal-submitted" style="margin:0; color:#64748b; font-size:0.82rem;"></p></div>';
+  body += '<button type="button" class="modal-close" onclick="closeClaimDetails()">✕</button></div>';
+  body += '<div class="modal-body"><div class="details-grid">';
+  body += '<div><div class="details-label">Claimant</div><div id="modal-claimant" class="details-box"></div></div>';
+  body += '<div><div class="details-label">Item</div><div id="modal-item" class="details-box"></div></div>';
+  body += '<div><div class="details-label">Reason for claim</div><div id="modal-reason" class="details-box"></div></div>';
+  body += '<div><div class="details-label">Proof of ownership</div><div id="modal-proof" class="details-box"></div></div>';
+  body += '</div></div></div></div>';
+
+  body += '<script>function openClaimDetails(button){const modal=document.getElementById("claim-details-modal");document.getElementById("modal-item").textContent=button.dataset.item||"Unknown item";document.getElementById("modal-claimant").textContent=button.dataset.claimant||"Unknown claimant";document.getElementById("modal-reason").textContent=button.dataset.reason||"Not provided";document.getElementById("modal-proof").textContent=button.dataset.proof||"Not provided";document.getElementById("modal-submitted").textContent="Submitted: "+(button.dataset.submitted||"");modal.hidden=false;}function closeClaimDetails(){document.getElementById("claim-details-modal").hidden=true;}document.getElementById("claim-details-modal").addEventListener("click",function(event){if(event.target===this){closeClaimDetails();}});document.addEventListener("keydown",function(event){if(event.key==="Escape"){const modal=document.getElementById("claim-details-modal");if(modal&&!modal.hidden){closeClaimDetails();}}});</script>';
 %>
+
 <%- include('layout', { user, error, success, body }) %>
