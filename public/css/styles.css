@@ -172,6 +172,36 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
 }
+.search-bar {
+  margin: 24px 0 0;
+}
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.search-form input,
+.search-form select {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: white;
+  color: #1f2937;
+  min-width: 180px;
+}
+.search-form button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  background: #1e40af;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.search-form button:hover {
+  background: #4338ca;
+}
 .items-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

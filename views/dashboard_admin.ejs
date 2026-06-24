@@ -11,6 +11,25 @@
       <a class="button" href="/admin/add-user">Create new user</a>
     </section>
 
+    <section class="search-bar">
+      <form action="/admin" method="get" class="search-form">
+        <input type="search" name="q" placeholder="Search reports..." value="${query || ''}" />
+        <select name="type">
+          <option value="">All types</option>
+          <option value="lost" ${type === 'lost' ? 'selected' : ''}>Lost</option>
+          <option value="found" ${type === 'found' ? 'selected' : ''}>Found</option>
+        </select>
+        <select name="status">
+          <option value="">All statuses</option>
+          <option value="in security" ${status === 'in security' ? 'selected' : ''}>In security</option>
+          <option value="returned" ${status === 'returned' ? 'selected' : ''}>Returned</option>
+          <option value="closed" ${status === 'closed' ? 'selected' : ''}>Closed</option>
+          <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
+        </select>
+        <button type="submit">Filter</button>
+      </form>
+    </section>
+
     <section class="dashboard-summary">
       <div class="status-card status-card-found">
         <h3>Total users</h3>
@@ -22,14 +41,8 @@
       </div>
     </section>
 
-    <section class="search-bar" style="margin-bottom:16px;">
-      <form action="/admin" method="get" class="search-form">
-        <input type="search" name="q" placeholder="Search reports..." value="${query || ''}" />
-        <button type="submit">Search</button>
-      </form>
-    </section>
-
     <section class="section-grid">
+      <div class="table-card" style="overflow-x:auto;">
         <h2>Users</h2>
         ${users.length ? `
           <table style="font-size:12px; font-family:inherit; min-width:100%; border-collapse:collapse;">

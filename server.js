@@ -488,19 +488,35 @@ app.post('/security/report/:id/resolve', requireRole('security'), async (req, re
 app.get('/admin', requireRole('admin'), async (req, res) => {
   const db = await openDatabase();
   const q = (req.query.q || '').trim();
+  const type = (req.query.type || '').trim().toLowerCase();
+  const status = (req.query.status || '').trim().toLowerCase();
   const users = await db.all('SELECT id, username, full_name, email, role, phone_number FROM users ORDER BY role, username');
+
   let reportSql = 'SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by';
+  const where = [];
   const params = [];
   if (q) {
-    reportSql += ' WHERE r.title LIKE ? OR r.description LIKE ? OR r.location LIKE ? OR r.status LIKE ? OR u.full_name LIKE ?';
+    where.push('(r.title ILIKE ? OR r.description ILIKE ? OR r.location ILIKE ? OR r.status ILIKE ? OR u.full_name ILIKE ?)');
     const searchTerm = `%${q}%`;
     params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
   }
-  reportSql += ' ORDER BY created_at DESC';
+  if (type && ['lost', 'found'].includes(type)) {
+    where.push('r.type = ?');
+    params.push(type);
+  }
+  if (status) {
+    where.push('r.status = ?');
+    params.push(status);
+  }
+  if (where.length) {
+    reportSql += ' WHERE ' + where.join(' AND ');
+  }
+  reportSql += ' ORDER BY r.created_at DESC';
+
   const reports = await db.all(reportSql, ...params);
   const lostReports = reports.filter((r) => r.type === 'lost');
   const foundReports = reports.filter((r) => r.type === 'found');
-  res.render('dashboard_admin', { users, reports, lostReports, foundReports, query: q });
+  res.render('dashboard_admin', { users, reports, lostReports, foundReports, query: q, type, status });
 });
 
 app.post('/admin/report/:id/delete', requireRole('admin'), async (req, res) => {
