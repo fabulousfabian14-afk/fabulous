@@ -33,6 +33,12 @@
       <section class="notice-box notice-warning">
         <strong>⏰ Important:</strong> Items not claimed within 90 days may be archived or disposed of according to university policy.
       </section>
+      <section class="search-bar">
+        <form action="/student/available" method="get" class="search-form">
+          <input type="search" name="q" placeholder="Search found items..." value="<%= query || '' %>" />
+          <button type="submit">Search</button>
+        </form>
+      </section>
 
       <% if (reports.length) { %>
         <div class="items-grid">
@@ -40,7 +46,7 @@
             <div class="item-card">
               <div class="item-image">
                 <% if (report.image_path) { %>
-                  <img src="<%= report.image_path.match(/^https?:\/\//) ? report.image_path : '/' + report.image_path %>" alt="<%= report.title %>">
+                  <img src="/<%= report.image_path %>" alt="<%= report.title %>">
                 <% } else { %>
                   <div class="no-image">📦 No Image</div>
                 <% } %>
@@ -59,16 +65,9 @@
                   <% if (report.my_pending_claims > 0) { %>
                     <div class="badge badge-yellow">Your claim is pending review</div>
                   <% } else if ([ 'in security', 'claim requested' ].includes(report.status)) { %>
-                    <details class="claim-details">
-                      <summary class="btn btn-success">Request to Claim</summary>
-                      <form action="/student/claim/<%= report.id %>" method="post" class="claim-request-form">
-                        <label for="reason-<%= report.id %>">Why do you think this item is yours?</label>
-                        <textarea id="reason-<%= report.id %>" name="claim_reason" rows="3" required></textarea>
-                        <label for="proof-<%= report.id %>">Proof of ownership</label>
-                        <textarea id="proof-<%= report.id %>" name="proof_of_ownership" rows="3" required></textarea>
-                        <button type="submit" class="btn btn-success">Submit Claim</button>
-                      </form>
-                    </details>
+                    <form action="/student/claim/<%= report.id %>" method="post" class="inline-form">
+                      <button type="submit" class="btn btn-success">Request to Claim</button>
+                    </form>
                   <% } else { %>
                     <p class="text-muted">Not available for claim.</p>
                   <% } %>

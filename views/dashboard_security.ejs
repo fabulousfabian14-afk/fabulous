@@ -10,6 +10,7 @@
   body += '<p>Manage the gate office lost and found inventory, review pending claim requests, and register found items from visitors.</p></div>';
   body += '<a class="button" href="/security/report-found">Report Found Item</a>';
   body += '</section>';
+  body += '<section class="search-bar"><form action="/security" method="get" class="search-form"><input type="search" name="q" value="' + escapeAttr(query || '') + '" placeholder="Search lost or found items..." /><button type="submit">Search</button></form></section>';
 
   body += '<section class="dashboard-summary">';
   body += '<div class="status-card status-card-lost"><h3>Lost reports</h3><p>' + lostReports.length + '</p></div>';

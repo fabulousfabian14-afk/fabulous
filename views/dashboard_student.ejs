@@ -18,7 +18,13 @@
     </div>
 
     <section class="panel">
-      <h2>Your report history</h2>
+      <div class="panel-header">
+        <h2>Your report history</h2>
+        <form action="/student" method="get" class="search-form">
+          <input type="search" name="q" placeholder="Search history..." value="${query || ''}" />
+          <button type="submit">Search</button>
+        </form>
+      </div>
       ${reports && reports.length ? `
         <table>
           <thead>

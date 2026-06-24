@@ -22,8 +22,14 @@
       </div>
     </section>
 
+    <section class="search-bar" style="margin-bottom:16px;">
+      <form action="/admin" method="get" class="search-form">
+        <input type="search" name="q" placeholder="Search reports..." value="${query || ''}" />
+        <button type="submit">Search</button>
+      </form>
+    </section>
+
     <section class="section-grid">
-      <div class="table-card" style="overflow-x:auto;">
         <h2>Users</h2>
         ${users.length ? `
           <table style="font-size:12px; font-family:inherit; min-width:100%; border-collapse:collapse;">

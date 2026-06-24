@@ -251,37 +251,53 @@ app.get('/dashboard', requireLogin, async (req, res) => {
 
 app.get('/student', requireRole('student'), async (req, res) => {
   const db = await openDatabase();
-  const reports = await db.all('SELECT * FROM reports WHERE created_by = ? ORDER BY created_at DESC', req.session.user.id);
-  res.render('dashboard_student', { reports });
+  const q = (req.query.q || '').trim();
+  const searchTerm = q ? `%${q}%` : null;
+  let sql = 'SELECT * FROM reports WHERE created_by = ?';
+  const params = [req.session.user.id];
+  if (q) {
+    sql += ' AND (title LIKE ? OR description LIKE ? OR location LIKE ? OR status LIKE ?)';
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+  sql += ' ORDER BY created_at DESC';
+  const reports = await db.all(sql, ...params);
+  res.render('dashboard_student', { reports, query: q });
 });
 
 app.get('/student/available', requireRole('student'), async (req, res) => {
   const db = await openDatabase();
-  const reports = await db.all(
-    `SELECT r.*, u.full_name AS reporter, u.phone_number AS reporter_phone,
+  const q = (req.query.q || '').trim();
+  const searchTerm = q ? `%${q}%` : null;
+  let sql = `SELECT r.*, u.full_name AS reporter, u.phone_number AS reporter_phone,
       COUNT(c.id) AS claim_requests,
       SUM(CASE WHEN c.user_id = ? AND c.status = 'pending' THEN 1 ELSE 0 END) AS my_pending_claims
      FROM reports r
      LEFT JOIN users u ON u.id = r.created_by
      LEFT JOIN claims c ON c.report_id = r.id
-     WHERE r.type = ? AND r.status IN (?, ?) AND r.archived_at IS NULL
-     GROUP BY r.id, u.full_name, u.phone_number
-     ORDER BY r.created_at DESC`,
-    req.session.user.id,
-    'found',
-    'in security',
-    'claim requested'
-  );
-  res.render('available_items', { reports });
+     WHERE r.type = ? AND r.status IN (?, ?) AND r.archived_at IS NULL`;
+  const params = [req.session.user.id, 'found', 'in security', 'claim requested'];
+  if (q) {
+    sql += ' AND (r.title LIKE ? OR r.description LIKE ? OR r.location LIKE ? OR u.full_name LIKE ?)';
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+  sql += ' GROUP BY r.id, u.full_name, u.phone_number ORDER BY r.created_at DESC';
+  const reports = await db.all(sql, ...params);
+  res.render('available_items', { reports, query: q });
 });
 
 app.get('/student/lost-reports', requireRole('student'), async (req, res) => {
   const db = await openDatabase();
-  const reports = await db.all(
-    'SELECT r.*, u.full_name AS reporter, u.phone_number AS reporter_phone FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL ORDER BY r.created_at DESC',
-    'lost'
-  );
-  res.render('lost_reports', { reports, user: req.session.user });
+  const q = (req.query.q || '').trim();
+  const searchTerm = q ? `%${q}%` : null;
+  let sql = 'SELECT r.*, u.full_name AS reporter, u.phone_number AS reporter_phone FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL';
+  const params = ['lost'];
+  if (q) {
+    sql += ' AND (r.title LIKE ? OR r.description LIKE ? OR r.location LIKE ? OR u.full_name LIKE ?)';
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+  sql += ' ORDER BY r.created_at DESC';
+  const reports = await db.all(sql, ...params);
+  res.render('lost_reports', { reports, user: req.session.user, query: q });
 });
 
 app.get('/student/report-lost', requireRole('student'), (req, res) => res.render('lost_report'));
@@ -425,13 +441,18 @@ app.post('/security/claim/:claimId/reject', requireRole('security'), async (req,
 
 app.get('/security', requireRole('security'), async (req, res) => {
   const db = await openDatabase();
+  const q = (req.query.q || '').trim();
+  const searchTerm = q ? `%${q}%` : null;
+  const searchClause = q ? ' AND (r.title LIKE ? OR r.description LIKE ? OR r.location LIKE ? OR u.full_name LIKE ?)' : '';
+  const lostParams = q ? ['lost', searchTerm, searchTerm, searchTerm, searchTerm] : ['lost'];
+  const foundParams = q ? ['found', searchTerm, searchTerm, searchTerm, searchTerm] : ['found'];
   const lostReports = await db.all(
-    'SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL ORDER BY r.created_at DESC',
-    'lost'
+    'SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL' + searchClause + ' ORDER BY r.created_at DESC',
+    ...lostParams
   );
   const foundReports = await db.all(
-    'SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL ORDER BY r.created_at DESC',
-    'found'
+    'SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL' + searchClause + ' ORDER BY r.created_at DESC',
+    ...foundParams
   );
   const pendingClaims = await db.all(
     `SELECT c.*, r.title AS report_title, r.description AS report_description, r.location AS report_location,
@@ -444,7 +465,7 @@ app.get('/security', requireRole('security'), async (req, res) => {
      ORDER BY c.created_at DESC`,
     'pending'
   );
-  res.render('dashboard_security', { lostReports, foundReports, pendingClaims });
+  res.render('dashboard_security', { lostReports, foundReports, pendingClaims, query: q });
 });
 
 app.post('/security/report/:id/assign', requireRole('security'), async (req, res) => {
@@ -466,11 +487,20 @@ app.post('/security/report/:id/resolve', requireRole('security'), async (req, re
 
 app.get('/admin', requireRole('admin'), async (req, res) => {
   const db = await openDatabase();
+  const q = (req.query.q || '').trim();
   const users = await db.all('SELECT id, username, full_name, email, role, phone_number FROM users ORDER BY role, username');
-  const reports = await db.all('SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by ORDER BY created_at DESC');
+  let reportSql = 'SELECT r.*, u.full_name AS reporter FROM reports r LEFT JOIN users u ON u.id = r.created_by';
+  const params = [];
+  if (q) {
+    reportSql += ' WHERE r.title LIKE ? OR r.description LIKE ? OR r.location LIKE ? OR r.status LIKE ? OR u.full_name LIKE ?';
+    const searchTerm = `%${q}%`;
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+  reportSql += ' ORDER BY created_at DESC';
+  const reports = await db.all(reportSql, ...params);
   const lostReports = reports.filter((r) => r.type === 'lost');
   const foundReports = reports.filter((r) => r.type === 'found');
-  res.render('dashboard_admin', { users, reports, lostReports, foundReports });
+  res.render('dashboard_admin', { users, reports, lostReports, foundReports, query: q });
 });
 
 app.post('/admin/report/:id/delete', requireRole('admin'), async (req, res) => {

@@ -11,6 +11,12 @@
     </section>
 
     <section class="panel">
+      <div class="panel-header">
+        <form action="/student/lost-reports" method="get" class="search-form" style="margin-bottom:12px;">
+          <input type="search" name="q" placeholder="Search lost reports..." value="${query || ''}" />
+          <button type="submit">Search</button>
+        </form>
+      </div>
       ${reports && reports.length ? `
         <table>
           <thead>
