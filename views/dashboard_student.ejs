@@ -33,9 +33,12 @@
           <tbody>
             ${reports.map(r => `
               <tr>
-                <td>${r.id}</td>
-                <td>${r.type}</td>
-                <td>${r.title}</td>
+                  <td>${r.id}</td>
+                  <td style="max-width:96px; padding:8px;">
+                    ${r.image_path ? `<img src="${/^https?:\\/\\/./.test(r.image_path) ? r.image_path : '/' + r.image_path}" alt="${r.title}" style="width:96px;height:64px;object-fit:cover;border-radius:8px;" />` : '<span style="color:#6b7280;">No image</span>'}
+                  </td>
+                  <td>${r.type}</td>
+                  <td>${r.title}</td>
                 <td><span class="status-badge status-${r.status.replace(/\\s+/g, '-')}">${r.status}</span></td>
                 <td>${r.location}</td>
                 <td>${new Date(r.created_at).toLocaleDateString()}</td>
