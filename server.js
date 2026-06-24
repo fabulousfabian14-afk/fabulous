@@ -127,18 +127,44 @@ app.get('/', (req, res) => {
 
 app.get('/login', (req, res) => res.render('login'));
 
+app.get('/forgot-password', (req, res) => res.render('forgot_password'));
+
+app.post('/forgot-password', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password || password.length < 6) {
+      req.flash('error', 'Username, registered email, and a new password (min 6 chars) are required.');
+      return res.redirect('/forgot-password');
+    }
+    const db = await openDatabase();
+    const user = await db.get('SELECT * FROM users WHERE username = ? AND email = ?', username, email);
+    if (!user) {
+      req.flash('error', 'No account found matching that username and email.');
+      return res.redirect('/forgot-password');
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    await db.run('UPDATE users SET password = ? WHERE id = ?', hashed, user.id);
+    req.flash('success', 'Password reset successfully. Please sign in with your new password.');
+    res.redirect('/login');
+  } catch (error) {
+    console.error(error);
+    req.flash('error', 'Unable to reset password. Please try again.');
+    res.redirect('/forgot-password');
+  }
+});
+
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     const db = await openDatabase();
     const row = await db.get('SELECT * FROM users WHERE username = ?', username);
     if (!row) {
-      req.flash('error', 'Credentials are invalid.');
+      req.flash('error', 'Credentials are invalid. Forgot your password? Use the link below.');
       return res.redirect('/login');
     }
     const valid = await bcrypt.compare(password, row.password);
     if (!valid) {
-      req.flash('error', 'Credentials are invalid.');
+      req.flash('error', 'Credentials are invalid. Forgot your password? Use the link below.');
       return res.redirect('/login');
     }
     req.session.user = { id: row.id, username: row.username, role: row.role, full_name: row.full_name };
