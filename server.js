@@ -43,6 +43,13 @@ function getImagePath(file) {
   return `uploads/${file.filename}`;
 }
 
+function reportUrl(imagePath) {
+  if (!imagePath) return '';
+  if (imagePath.match(/^https?:\/\//)) return imagePath;
+  if (imagePath.startsWith('/')) return imagePath;
+  return '/' + imagePath;
+}
+
 // Configure multer storage based on environment
 let storage;
 if (useCloudinary) {
