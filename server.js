@@ -268,6 +268,8 @@ app.get('/student', requireRole('student'), async (req, res) => {
   }
   sql += ' ORDER BY created_at DESC';
   const reports = await db.all(sql, ...params);
+  // Normalize image URLs for templates
+  reports.forEach(r => { r.image_url = reportUrl(r.image_path); });
   res.render('dashboard_student', { reports, query: q });
 });
 
@@ -289,6 +291,7 @@ app.get('/student/available', requireRole('student'), async (req, res) => {
   }
   sql += ' GROUP BY r.id, u.full_name, u.phone_number ORDER BY r.created_at DESC';
   const reports = await db.all(sql, ...params);
+  reports.forEach(r => { r.image_url = reportUrl(r.image_path); });
   res.render('available_items', { reports, query: q });
 });
 
@@ -304,6 +307,7 @@ app.get('/student/lost-reports', requireRole('student'), async (req, res) => {
   }
   sql += ' ORDER BY r.created_at DESC';
   const reports = await db.all(sql, ...params);
+  reports.forEach(r => { r.image_url = reportUrl(r.image_path); });
   res.render('lost_reports', { reports, user: req.session.user, query: q });
 });
 

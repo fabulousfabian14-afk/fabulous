@@ -45,8 +45,8 @@
           <% reports.forEach(report => { %>
             <div class="item-card">
               <div class="item-image">
-                <% if (report.image_path) { %>
-                  <img src="<%= report.image_path.match(/^https?:\/\//) ? report.image_path : '/' + report.image_path %>" alt="<%= report.title %>">
+                <% if (report.image_url) { %>
+                  <img src="<%= report.image_url %>" alt="<%= report.title %>">
                 <% } else { %>
                   <div class="no-image">📦 No Image</div>
                 <% } %>
