@@ -20,12 +20,15 @@
       ${reports && reports.length ? `
         <table>
           <thead>
-            <tr><th>ID</th><th>Title</th><th>Description</th><th>Location</th><th>Reporter</th><th>Date</th><th>Status</th></tr>
+            <tr><th>ID</th><th>Photo</th><th>Title</th><th>Description</th><th>Location</th><th>Reporter</th><th>Date</th><th>Status</th></tr>
           </thead>
           <tbody>
             ${reports.map(r => `
               <tr>
                 <td>${r.id}</td>
+                <td style="max-width:96px; padding:8px;">
+                  ${r.image_path ? `<img src="${/^https?:\/\//.test(r.image_path) ? r.image_path : '/' + r.image_path}" alt="${r.title}" style="width:96px;height:64px;object-fit:cover;border-radius:8px;" />` : '<span style="color:#6b7280;">No image</span>'}
+                </td>
                 <td>${r.title}</td>
                 <td>${r.description}</td>
                 <td>${r.location}</td>
