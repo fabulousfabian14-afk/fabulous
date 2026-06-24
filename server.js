@@ -199,9 +199,11 @@ app.get('/dashboard', requireLogin, async (req, res) => {
     const myReports = await db.get('SELECT COUNT(1) AS count FROM reports WHERE created_by = ?', req.session.user.id);
     const pendingClaims = await db.get('SELECT COUNT(1) AS count FROM claims WHERE user_id = ? AND status = ?', req.session.user.id, 'pending');
     const availableItems = await db.get('SELECT COUNT(1) AS count FROM reports WHERE type = ? AND status IN (?, ?) AND archived_at IS NULL', 'found', 'in security', 'claim requested');
+    const lostReports = await db.get('SELECT COUNT(1) AS count FROM reports WHERE type = ? AND archived_at IS NULL', 'lost');
     data.myReports = myReports.count;
     data.pendingClaims = pendingClaims.count;
     data.availableItems = availableItems.count;
+    data.lostReports = lostReports.count;
   } else if (role === 'security') {
     const pendingClaims = await db.get('SELECT COUNT(1) AS count FROM claims WHERE status = ?', 'pending');
     const foundItems = await db.get('SELECT COUNT(1) AS count FROM reports WHERE type = ? AND status IN (?, ?) AND archived_at IS NULL', 'found', 'in security', 'claim requested');
@@ -245,6 +247,15 @@ app.get('/student/available', requireRole('student'), async (req, res) => {
     'claim requested'
   );
   res.render('available_items', { reports });
+});
+
+app.get('/student/lost-reports', requireRole('student'), async (req, res) => {
+  const db = await openDatabase();
+  const reports = await db.all(
+    'SELECT r.*, u.full_name AS reporter, u.phone_number AS reporter_phone FROM reports r LEFT JOIN users u ON u.id = r.created_by WHERE r.type = ? AND r.archived_at IS NULL ORDER BY r.created_at DESC',
+    'lost'
+  );
+  res.render('lost_reports', { reports, user: req.session.user });
 });
 
 app.get('/student/report-lost', requireRole('student'), (req, res) => res.render('lost_report'));

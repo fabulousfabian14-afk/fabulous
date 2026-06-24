@@ -27,6 +27,10 @@
           <h3>Available found items</h3>
           <p>${data.availableItems}</p>
         </div>
+        <div class="status-card status-card-lost">
+          <h3>Lost reports</h3>
+          <p>${data.lostReports}</p>
+        </div>
       ` : role === 'security' ? `
         <div class="status-card status-card-pending">
           <h3>Pending claims</h3>
@@ -62,6 +66,7 @@
           <a class="button" href="/student/report-lost">Report Lost Item</a>
           <a class="button" href="/student/report-found">Report Found Item</a>
           <a class="button" href="/student/available">Claim Available Items</a>
+          <a class="button" href="/student/lost-reports">View Lost Reports</a>
           <a class="button btn-secondary" href="/student">View My Reports</a>
         </div>
       ` : role === 'security' ? `
