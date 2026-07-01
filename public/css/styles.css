@@ -607,6 +607,25 @@ button:hover,
     margin-top: 8px;
   }
 
+  .claim-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+
+  .claim-form label {
+    font-size: 0.9rem;
+  }
+
+  .claim-form textarea {
+    min-height: 72px;
+    resize: vertical;
+  }
+
   .page-header {
     display: flex;
     justify-content: space-between;

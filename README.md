@@ -1,173 +1,173 @@
 Kabianga Lost & Found Tracker
 
-A role-based Express.js lost-and-found tracking system for University of Kabianga with **persistent PostgreSQL database** for production deployments.
+A role-based Express.js lost-and-found tracking system for University of Kabianga with persistent PostgreSQL database for production deployments.
 
-## Features
+Features
+
 - Role-based dashboards (admin, security, student)
 - Report lost/found items with optional photo uploads
 - Security claim workflow (submit / approve / reject)
 - Multi-user claim requests with approval authority
 - Automatic claim rejection on approval (prevents conflicts)
 - Responsive mobile-friendly UI for security dashboard
-- **Persistent database**: PostgreSQL via `DATABASE_URL`
+- Persistent database: PostgreSQL via DATABASE_URL
 
-## Database Options
-- **Production (Render)**: Uses PostgreSQL via `DATABASE_URL` - data persists in managed database
-- **Public deployment**: the app can be deployed on Render or any host with a public PostgreSQL connection string
+ Database Options
 
-## Environment-based deployment
+- Production (Render): Uses PostgreSQL via `DATABASE_URL` - data persists in managed database
+- Public deployment: the app can be deployed on Render or any host with a public PostgreSQL connection string
+
+ Environment-based deployment
+
 The app is configured to use environment variables for production deployments.
 
 Required environment variables:
-- `DATABASE_URL` - PostgreSQL connection string
-- `PGSSLMODE=require` - recommended for remote PostgreSQL hosts such as Render
-- `NODE_ENV=production` - enables production SSL detection in `db.js`
-## Quick links
+- DATABASE_URL - PostgreSQL connection string
+- PGSSLMODE=require - recommended for remote PostgreSQL hosts such as Render
+- NODE_ENV=production - enables production SSL detection in db.js
+
+ Quick links
+
 - App entry: [server.js](server.js)
 - Database helper: [db.js](db.js)
 - Render config: [render.yaml](render.yaml)
 - Views: [views/](views)
 
-## Prerequisites
+ Prerequisites
+
 - Node.js >= 16
 - npm
 - Git
 
-## Install & run locally
+ Install & run locally
 
-### 1. Install dependencies
+1. Install dependencies
 
-```bash
+bash
 npm install
-```
 
-### 2. Start the app
+2. Start the app
 
-```bash
+bash
 npm start
-```
+
 
 The app uses PostgreSQL and automatically initializes tables and seed users on first run.
 
-### 3. Open http://localhost:3000
+ 3. Open http://localhost:3000
 
-## Database
+ Database
 
-### Production (PostgreSQL on Render)
-- Uses PostgreSQL via `DATABASE_URL`
+ Production (PostgreSQL on Render)
+
+- Uses PostgreSQL via DATABASE_URL
 - Data persists across deployments and restarts
 - Schema and seed users created automatically on first run
 
-The app requires `DATABASE_URL` environment variable and uses PostgreSQL.
+The app requires DATABASE_URL environment variable and uses PostgreSQL.
 
 When deployed to Render with PostgreSQL:
 - Data persists across deployments and restarts
 - Multiple instances can share the same database
 - Automatic schema creation and user seeding on startup
 
-## Default seeded accounts
+ MY accounts
 
 Use these credentials after first start:
-- **Admin**: username `admin` / password `THEFABULOUS`
-- **Security**: username `security` / password `security@24`
-- **Student**: username `student` / password `student@24`
+- Admin: username admin / password THEFABULOUS
+- Security: username security / password security@24
+- Student: username student / password student@24
 
-## Configuration
+ Configuration
 
 Environment variables:
-- `PORT` (default: 3000) - Server port
-- `DATABASE_URL` - PostgreSQL connection string for production
-- `PGSSLMODE` - should usually be `require` for remote Postgres hosts
-- `NODE_ENV` - production or development
+- PORT (default: 3000) - Server port
+- DATABASE_URL - PostgreSQL connection string for production
+- PGSSLMODE - should usually be `require` for remote Postgres hosts
+- NODE_ENV - production or development
 
-## Deploying to Render
+ Deploying to Render
 
-### Prerequisites
+ Prerequisites
 - GitHub repository (code pushed)
 - Render account
 
-### Deployment Steps
+ Deployment Steps
 
-1. **Create PostgreSQL Database** (for persistent data):
+1. Create PostgreSQL Database (for persistent data):
    - Go to [render.com](https://render.com)
    - Click "New +" → "PostgreSQL"
    - Name: `kahianga-db`
    - Plan: Free
    - Note the connection string (DATABASE_URL)
 
-2. **Create Web Service**:
-   - Click "New +" → "Web Service"
+2. Create Web Service:
+   - Click New then Web Service
    - Connect your GitHub repository
-   - Name: `kahianga-tracker`
-   - Environment: `Node`
-   - Build: `npm install`
-   - Start: `npm start`
+   - Name: kahianga-tracker
+   - Environment: Node
+   - Build: npm install
+   - Start: npm start
    - Add environment variable:
-     - Key: `DATABASE_URL`
+     - Key: DATABASE_URL
      - Value: Paste the PostgreSQL connection string from step 1
    - Plan: Free
 
-3. **Deploy**:
-   - Render will automatically deploy from `render.yaml`
+3. Deploy:
+   - Render will automatically deploy from render.yaml
    - Database schema and seed users are created automatically
-   - Your app will be live at `https://kahianga-tracker.onrender.com`
+   - Your app will be live at https://kahianga-tracker.onrender.com
 
-### Notes
-- `render.yaml` includes PostgreSQL configuration
+ Notes
+- render.yaml includes PostgreSQL configuration
 - PostgreSQL data persists indefinitely on Render
 - On first deployment, tables and seed users are created automatically
 
-## Troubleshooting
+ Troubleshooting
 
-### Database connection issues
-- **Locally**: Verify `DATABASE_URL` is set and points to a PostgreSQL database
-- **Production**: Verify `DATABASE_URL` is set correctly in Render dashboard
+ Database connection issues
+- Locally: Verify `DATABASE_URL` is set and points to a PostgreSQL database
+- Production: Verify `DATABASE_URL` is set correctly in Render dashboard
 
-### Port already in use locally
+ Port already in use locally
 On Windows:
-```powershell
+powershell
 netstat -ano | findstr :3000
 taskkill /PID <pid> /F
-```
 
-On macOS/Linux:
-```bash
-lsof -i :3000
-kill -9 <pid>
-```
+
 
 Or use a different port:
-```bash
+bash
 PORT=4000 npm start
-```
 
-### EJS template errors
+
+ EJS template errors
 - Check that views use consistent template literal syntax inside `include()` calls
 - All dashboard templates have been updated to use proper JavaScript template literal syntax
 
-## Architecture
+ Architecture
 
-### Request Flow
+ Request Flow
 1. Client sends request to Express server
 2. Authentication middleware checks session
 3. Route handler connects to PostgreSQL database
 4. Data returned and rendered via EJS templates
 5. Response sent to client
 
-### Database Abstraction
+ Database Abstraction
 - `db.js` provides a PostgreSQL interface using `pg`
 - Query parameters use `$1, $2...` for PostgreSQL
 - Same API is used throughout the app
 
-## Contributing
-- Create feature branches, open PRs into `main`
+ Contributing
+- Create feature branches, open PRs into main
 - Test locally with PostgreSQL before committing
 
-## License
+ License
 - MIT
 
----
 
-**Last updated**: 2026-06-17  
-**Database**: PostgreSQL  
-**Status**: Ready for deployment to Render with persistent PostgreSQL database
+Last updated: 2026-06-17  
+Database: PostgreSQL  
+Status: Ready for deployment to Render with persistent PostgreSQL database

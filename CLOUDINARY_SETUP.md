@@ -1,37 +1,37 @@
-# Image Persistence Setup for Render
+Image Persistence Setup for Render
 
-## Current State
+Current State
 
-The application currently has **ephemeral image storage** on Render's free tier. This means:
+The application currently has ephemeral image storage on Render's free tier. This means:
 - ✅ Images work fine on localhost (development)
 - ❌ Images are lost when the Render app restarts or redeploys
 - ✅ Claim reason and proof text persist (stored in PostgreSQL database)
 
-## Solution: Use Cloudinary for Cloud Image Storage
+ Solution: Use Cloudinary for Cloud Image Storage
 
 Cloudinary offers free tier storage suitable for this application.
 
-### Step 1: Create Cloudinary Account
+ Step 1: Create Cloudinary Account
 
 1. Sign up at [cloudinary.com](https://cloudinary.com/users/register/free)
 2. Verify email
 3. Go to Dashboard and note your:
-   - **Cloud Name**
-   - **API Key**
-   - **API Secret**
+   - Cloud Name
+   - API Key
+   - API Secret
 
-### Step 2: Add Cloudinary to Your App
+ Step 2: Add Cloudinary to Your App
 
 Install the required packages:
-```bash
+bash
 npm install cloudinary multer-storage-cloudinary
-```
 
-### Step 3: Update render.yaml
 
-Add environment variables to your `render.yaml`:
+ Step 3: Update render.yaml
 
-```yaml
+Add environment variables to your render.yaml:
+
+yaml
 services:
   - type: web_service
     name: kahianga-tracker
@@ -62,20 +62,20 @@ services:
     databaseId: kahianga-db
 ```
 
-### Step 4: Set Environment Variables on Render
+ Step 4: Set Environment Variables on Render
 
 1. Go to your Kabianga Tracker service on Render
-2. Click **Environment**
+2. Click Environment
 3. Add these variables:
    - `CLOUDINARY_CLOUD_NAME`: Your Cloud Name from Cloudinary dashboard
    - `CLOUDINARY_API_KEY`: Your API Key
    - `CLOUDINARY_API_SECRET`: Your API Secret
 
-### Step 5: Update server.js
+ Step 5: Update server.js
 
 Replace the multer configuration (around line 20-50) with Cloudinary storage:
 
-```javascript
+javascript
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
@@ -111,11 +111,10 @@ if (isProduction && process.env.CLOUDINARY_CLOUD_NAME) {
 }
 ```
 
-### Step 6: Update Image Path Helper
+ Step 6: Update Image Path Helper
 
 Update the `getImagePath()` function to use Cloudinary URLs:
-
-```javascript
+ javascript
 function getImagePath(file) {
   if (!file) return null;
   
@@ -127,26 +126,26 @@ function getImagePath(file) {
   // Development: local storage
   return `uploads/${file.filename}`;
 }
-```
 
-### Step 7: Redeploy
 
-```bash
+ Step 7: Redeploy
+
+bash
 git add .
 git commit -m "Add Cloudinary integration for persistent image storage"
 git push origin main
-```
+
 
 Render will automatically redeploy with the new environment variables.
 
-## Testing
+ Testing
 
 1. After deploying, log in as a student
 2. Report a lost item with an image
 3. Verify the image shows on the security dashboard
 4. Restart the Render service → image should still be visible (since it's now on Cloudinary)
 
-## Cloudinary Free Tier Limits
+ Cloudinary Free Tier Limits
 
 - 25 GB storage
 - 25 GB bandwidth/month
@@ -154,6 +153,6 @@ Render will automatically redeploy with the new environment variables.
 
 This is sufficient for the university tracker application.
 
----
+
 
 Once Cloudinary is set up, images will persist permanently and sync across all deployments!
